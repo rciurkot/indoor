@@ -1,0 +1,3 @@
+[submodule "libs/estimore_sdk"]
+	path = libs/estimore_sdk
+	url = https://github.com/Estimote/Android-SDK.git
