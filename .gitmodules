@@ -1,3 +1,6 @@
-[submodule "libs/estimore_sdk"]
-	path = libs/estimore_sdk
-	url = https://github.com/Estimote/Android-SDK.git
+[submodule "libs/android-beacon-library"]
+	path = libs/android-beacon-library
+	url = https://github.com/rciurkot/android-beacon-library.git
+[submodule "libs/estimote-sdk"]
+	path = libs/estimote-sdk
+	url = https://github.com/rciurkot/Android-SDK.git

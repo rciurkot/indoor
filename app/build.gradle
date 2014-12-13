@@ -13,8 +13,8 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 21
-    buildToolsVersion "21.1.1"
+    compileSdkVersion Integer.parseInt(project.ANDROID_BUILD_SDK_VERSION)
+    buildToolsVersion project.ANDROID_BUILD_TOOLS_VERSION
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
@@ -22,8 +22,8 @@ android {
 
     defaultConfig {
         applicationId "pl.rciurkot.indoor"
-        minSdkVersion 19
-        targetSdkVersion 21
+        minSdkVersion Integer.parseInt(project.ANDROID_BUILD_MIN_SDK_VERSION)
+        targetSdkVersion Integer.parseInt(project.ANDROID_BUILD_TARGET_SDK_VERSION)
         versionCode 1
         versionName "1.0"
     }
@@ -37,6 +37,8 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
+
+    compile project(':android-beacon-library')
 
     compile 'com.android.support:appcompat-v7:21.0.0'
 

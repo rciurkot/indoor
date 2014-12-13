@@ -1,2 +1,2 @@
-include ':app', ':EstimoteDemos'
-project(':EstimoteDemos').projectDir = new File('libs/estimore_sdk/Demos')
+include ':app', ':android-beacon-library'
+project(':android-beacon-library').projectDir = new File('libs/android-beacon-library')
