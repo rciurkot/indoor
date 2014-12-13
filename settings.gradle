@@ -1,1 +1,2 @@
-include ':app'
+include ':app', ':EstimoteDemos'
+project(':EstimoteDemos').projectDir = new File('libs/estimore_sdk/Demos')
