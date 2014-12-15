@@ -20,6 +20,17 @@ import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothDevice
 import timber.log.Timber
 import java.util.Arrays
+import org.altbeacon.beacon.BeaconManager
+import pl.rciurkot.indoor.IndoorApp
+import org.altbeacon.beacon.BeaconConsumer
+import android.content.ServiceConnection
+import android.content.Intent
+import org.altbeacon.beacon.EstimoteBeaconParser
+import org.altbeacon.beacon.RangeNotifier
+import org.altbeacon.beacon.Beacon
+import org.altbeacon.beacon.Region
+import android.widget.TextView
+import java.util.HashMap
 
 public class MainActivity : ActionBarActivity() {
 
@@ -27,7 +38,8 @@ public class MainActivity : ActionBarActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction().add(R.id.container, PlaceholderFragment()).commit()
+            //            getSupportFragmentManager().beginTransaction().add(R.id.container, PlaceholderFragment()).commit()
+            getSupportFragmentManager().beginTransaction().add(R.id.container, AltBeaconFragment()).commit()
         }
     }
 
@@ -82,5 +94,64 @@ public class MainActivity : ActionBarActivity() {
                 mBluetoothAdapter.stopLeScan(mLeScanCallback)
             }
         }
+    }
+
+    public class AltBeaconFragment : Fragment(), BeaconConsumer {
+        private val ESTIMOTE_UUID = "B9407F30-F5F8-466E-AFF9-25556B57FE6D"
+        private val beaconManager = BeaconManager.getInstanceForApplication(IndoorApp.self);
+        private var textView: TextView? = null
+        private val beaconsMap = HashMap<Int, Beacon>()
+
+
+        override fun onCreate(savedInstanceState: Bundle?) {
+            super<Fragment>.onCreate(savedInstanceState)
+            beaconManager.getBeaconParsers().add(EstimoteBeaconParser())
+            BeaconManager.setDebug(false)
+            beaconManager bind this
+        }
+
+        override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+            val rootView = inflater!!.inflate(R.layout.fragment_main, container, false)
+            textView = rootView.findViewById(R.id.textView) as TextView?
+            return rootView
+        }
+
+        override fun onDestroy() {
+            super<Fragment>.onDestroy()
+            beaconManager unbind this
+        }
+
+        override fun getApplicationContext(): Context? = getActivity().getApplicationContext()
+
+        override fun unbindService(connection: ServiceConnection?) = getActivity().unbindService(connection)
+
+        override fun bindService(intent: Intent?, connection: ServiceConnection?, mode: Int): Boolean = getActivity().bindService(intent, connection, mode)
+
+        override fun onBeaconServiceConnect() {
+            beaconManager.setRangeNotifier(object : RangeNotifier {
+                override fun didRangeBeaconsInRegion(beacons: MutableCollection<Beacon>?, region: Region?) {
+                    if (beacons?.notEmpty ?: false) {
+                        Timber.d("region $region")
+                        beacons!! forEach {
+                            Timber.d("beacon $it dist ${it.getDistance()}")
+                            beaconsMap += it.id to it
+                        }
+
+                        val sb = StringBuilder()
+                        //                        val sorted = beacons.sortBy { it.id }
+
+                        beaconsMap.values() forEach { sb appendln "${it.getId2()}\u0009${it.getId3()}\u0009${it.getRssi()}\n${it.getDistance().format(2)}\n" }
+                        getActivity() runOnUiThread { textView!! setText sb }
+                    }
+                }
+            })
+
+            beaconManager startRangingBeaconsInRegion Region(ESTIMOTE_UUID, null, null, null)
+        }
+
+        fun Double.format(digits: Int) = java.lang.String.format("%.${digits}f", this)
+
+        val Beacon.id: Int
+            get() = getId2().toInt() * 10000 + getId3().toInt()
     }
 }

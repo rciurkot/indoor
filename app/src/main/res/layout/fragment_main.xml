@@ -9,7 +9,9 @@
                 tools:context="pl.rciurkot.indoor.ui.MainActivity$PlaceholderFragment">
 
     <TextView
+        android:id="@+id/textView"
         android:text="@string/hello_world"
+        android:textSize="30sp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 
