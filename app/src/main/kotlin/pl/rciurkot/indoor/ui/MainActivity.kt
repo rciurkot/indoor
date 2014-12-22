@@ -25,12 +25,16 @@ import pl.rciurkot.indoor.IndoorApp
 import org.altbeacon.beacon.BeaconConsumer
 import android.content.ServiceConnection
 import android.content.Intent
-import org.altbeacon.beacon.EstimoteBeaconParser
+import pl.rciurkot.indoor.beacon.EstimoteBeaconParser
 import org.altbeacon.beacon.RangeNotifier
 import org.altbeacon.beacon.Beacon
 import org.altbeacon.beacon.Region
 import android.widget.TextView
 import java.util.HashMap
+import pl.rciurkot.indoor.location.Space
+import pl.rciurkot.indoor.location.Coords
+import pl.rciurkot.indoor.beacon.ESTIMOTE_UUID
+import pl.rciurkot.indoor.positioning.Trilateration
 
 public class MainActivity : ActionBarActivity() {
 
@@ -97,11 +101,10 @@ public class MainActivity : ActionBarActivity() {
     }
 
     public class AltBeaconFragment : Fragment(), BeaconConsumer {
-        private val ESTIMOTE_UUID = "B9407F30-F5F8-466E-AFF9-25556B57FE6D"
         private val beaconManager = BeaconManager.getInstanceForApplication(IndoorApp.self);
         private var textView: TextView? = null
         private val beaconsMap = HashMap<Int, Beacon>()
-
+        private val space: Space = buildSpace()
 
         override fun onCreate(savedInstanceState: Bundle?) {
             super<Fragment>.onCreate(savedInstanceState)
@@ -128,23 +131,36 @@ public class MainActivity : ActionBarActivity() {
         override fun bindService(intent: Intent?, connection: ServiceConnection?, mode: Int): Boolean = getActivity().bindService(intent, connection, mode)
 
         override fun onBeaconServiceConnect() {
+            //            beaconManager.setRangeNotifier(object : RangeNotifier {
+            //                override fun didRangeBeaconsInRegion(beacons: MutableCollection<Beacon>?, region: Region?) {
+            //                    if (beacons?.notEmpty ?: false) {
+            //                        Timber.d("region $region")
+            //                        beacons!! forEach {
+            //                            Timber.d("beacon $it dist ${it.getDistance()}")
+            //                            beaconsMap += it.id to it
+            //                        }
+            //
+            //                        val sb = StringBuilder()
+            //                        //                        val sorted = beacons.sortBy { it.id }
+            //
+            //                        beaconsMap.values() forEach { sb appendln "${it.getId2()}\u0009${it.getId3()}\u0009${it.getRssi()}\n${it.getDistance().format(2)}\n" }
+            //                        getActivity() runOnUiThread { textView!! setText sb }
+            //                    }
+            //                }
+            //            })
             beaconManager.setRangeNotifier(object : RangeNotifier {
+                val positionResolver = Trilateration()
                 override fun didRangeBeaconsInRegion(beacons: MutableCollection<Beacon>?, region: Region?) {
                     if (beacons?.notEmpty ?: false) {
-                        Timber.d("region $region")
                         beacons!! forEach {
-                            Timber.d("beacon $it dist ${it.getDistance()}")
-                            beaconsMap += it.id to it
+                            space.updateDist(it.uuid, it.getDistance())
                         }
-
-                        val sb = StringBuilder()
-                        //                        val sorted = beacons.sortBy { it.id }
-
-                        beaconsMap.values() forEach { sb appendln "${it.getId2()}\u0009${it.getId3()}\u0009${it.getRssi()}\n${it.getDistance().format(2)}\n" }
-                        getActivity() runOnUiThread { textView!! setText sb }
+                        positionResolver calculatePositionIn space
                     }
                 }
+
             })
+
 
             beaconManager startRangingBeaconsInRegion Region(ESTIMOTE_UUID, null, null, null)
         }
@@ -153,5 +169,16 @@ public class MainActivity : ActionBarActivity() {
 
         val Beacon.id: Int
             get() = getId2().toInt() * 10000 + getId3().toInt()
+
+        val Beacon.uuid: String
+            get() = "${getId1()}_${getId2()}_${getId3()}".toLowerCase()
+
+        fun buildSpace(): Space {
+            val space = Space()
+            space registerCoord Coords("${ESTIMOTE_UUID}_59035_20098".toLowerCase(), 1.0, 0.0)
+            space registerCoord Coords("${ESTIMOTE_UUID}_34703_1746".toLowerCase(), 0.0, 1.0)
+            space registerCoord Coords("${ESTIMOTE_UUID}_38742_36688".toLowerCase(), 1.0, 2.0)
+            return space
+        }
     }
 }
