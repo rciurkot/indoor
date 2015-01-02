@@ -32,9 +32,10 @@ import org.altbeacon.beacon.Region
 import android.widget.TextView
 import java.util.HashMap
 import pl.rciurkot.indoor.location.Space
-import pl.rciurkot.indoor.location.Coords
+import pl.rciurkot.indoor.location.Coord
 import pl.rciurkot.indoor.beacon.ESTIMOTE_UUID
-import pl.rciurkot.indoor.positioning.Trilateration
+import pl.rciurkot.indoor.positioning.HeremanTrilateration
+import pl.rciurkot.kotlin.util.notempty
 
 public class MainActivity : ActionBarActivity() {
 
@@ -149,13 +150,15 @@ public class MainActivity : ActionBarActivity() {
             //                }
             //            })
             beaconManager.setRangeNotifier(object : RangeNotifier {
-                val positionResolver = Trilateration()
+                val positionResolver = HeremanTrilateration()
                 override fun didRangeBeaconsInRegion(beacons: MutableCollection<Beacon>?, region: Region?) {
-                    if (beacons?.notEmpty ?: false) {
+                    if (beacons.notempty) {
                         beacons!! forEach {
                             space.updateDist(it.uuid, it.getDistance())
                         }
-                        positionResolver calculatePositionIn space
+                        val pos = positionResolver calculatePositionIn space
+                        Timber.e("!!!!!!! ${pos.x} ${pos.y}")
+                        getActivity() runOnUiThread { textView!! setText "${pos.x}\n${pos.y}\n${space.toString()}" }
                     }
                 }
 
@@ -165,8 +168,6 @@ public class MainActivity : ActionBarActivity() {
             beaconManager startRangingBeaconsInRegion Region(ESTIMOTE_UUID, null, null, null)
         }
 
-        fun Double.format(digits: Int) = java.lang.String.format("%.${digits}f", this)
-
         val Beacon.id: Int
             get() = getId2().toInt() * 10000 + getId3().toInt()
 
@@ -175,9 +176,13 @@ public class MainActivity : ActionBarActivity() {
 
         fun buildSpace(): Space {
             val space = Space()
-            space registerCoord Coords("${ESTIMOTE_UUID}_59035_20098".toLowerCase(), 1.0, 0.0)
-            space registerCoord Coords("${ESTIMOTE_UUID}_34703_1746".toLowerCase(), 0.0, 1.0)
-            space registerCoord Coords("${ESTIMOTE_UUID}_38742_36688".toLowerCase(), 1.0, 2.0)
+            //            space registerCoord Coords("${ESTIMOTE_UUID}_59035_20098".toLowerCase(), 1.0, 0.0)
+            //            space registerCoord Coords("${ESTIMOTE_UUID}_34703_1746".toLowerCase(), 0.0, 1.0)
+            //            space registerCoord Coords("${ESTIMOTE_UUID}_38742_36688".toLowerCase(), 1.0, 2.0)
+            space registerCoord Coord("${ESTIMOTE_UUID}_55296_8624".toLowerCase(), 0.0, 1.25) //GRANATOWY
+            space registerCoord Coord("${ESTIMOTE_UUID}_59035_20098".toLowerCase(), 2.0, 0.0) //OLIWKOWY
+            space registerCoord Coord("${ESTIMOTE_UUID}_38742_36688".toLowerCase(), 2.0, 2.25) //BŁĘKITNY
+
             return space
         }
     }

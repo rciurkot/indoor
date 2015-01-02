@@ -4,6 +4,7 @@ import java.util.ArrayList
 import java.util.HashSet
 import java.util.HashMap
 import timber.log.Timber
+import pl.rciurkot.kotlin.util.format
 
 /**
  * Created by rafalciurkot on 22.12.14.
@@ -15,13 +16,27 @@ public class Space {
      * returns copy of current coordinates - any changes made to returned object WON'T affect current state of Space
      */
     public val coordinates: Set<LocationAware>
-        get(){
-            val copy = HashSet<LocationAware>()
-            coords forEach { copy add it.value.copy() }
-            return copy
+        get() {
+            val set = HashSet<LocationAware>()
+            coords forEach { set add it.value.copy() }
+            return set
         }
 
-    public fun registerCoord(coord: Coords): Space {
+    /**
+     * returns copy of current coordinates that have the distance set - any changes made to returned object WON'T affect current state of Space
+     */
+    public val coordinatesWithDistance: Set<LocationAware>
+        get() {
+            val set = HashSet<LocationAware>()
+            coords forEach {
+                if (it.value.dist != null) {
+                    set add it.value.copy()
+                }
+            }
+            return set
+        }
+
+    public fun registerCoord(coord: Coord): Space {
         if (coords containsKey coord.id) {
             throw RuntimeException("Coordinates with id $coord.id already registered")
         }
@@ -37,5 +52,21 @@ public class Space {
             oldDist.dist = dist
             Timber.d("Distance of $id updated to $dist")
         }
+    }
+
+    public fun getDist(id: String): Double {
+        val dist = (coords get id).dist
+        if (dist == null)
+            throw RuntimeException("Unknown location id: $id")
+        return dist
+    }
+
+    override fun toString(): String {
+        val sb = StringBuilder()
+        coords forEach {
+            sb appendln "(${it.value.coords.x}, ${it.value.coords.y})=${it.value.dist?.format(3)}"
+        }
+
+        return sb.toString()
     }
 }

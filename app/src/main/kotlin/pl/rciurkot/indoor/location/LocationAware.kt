@@ -3,13 +3,13 @@ package pl.rciurkot.indoor.location
 /**
  * Created by rafalciurkot on 22.12.14.
  */
-public data class LocationAware(val coords: Coords) {
-    var dist: Double? = null
-
+public data class LocationAware(
+        val coords: Coord, var dist: Double? = null
+) {
     override fun hashCode(): Int = coords.hashCode()
 }
 
-public data class Coords(
+public data class Coord(
         val id: String,
         val x: Double,
         val y: Double,
