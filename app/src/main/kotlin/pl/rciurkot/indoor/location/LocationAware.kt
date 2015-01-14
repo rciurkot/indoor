@@ -17,3 +17,5 @@ public data class Coord(
 ) {
     override fun hashCode(): Int = id.hashCode()
 }
+
+public fun coord(x: Double, y: Double): Coord = Coord("", x, y)
