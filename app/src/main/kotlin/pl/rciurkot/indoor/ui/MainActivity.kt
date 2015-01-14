@@ -121,6 +121,7 @@ public class MainActivity : ActionBarActivity() {
 
         override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
             val rootView = inflater!!.inflate(R.layout.fragment_main, container, false)
+
             textView = rootView.findViewById(R.id.textView) as TextView?
             return rootView
         }
@@ -162,9 +163,9 @@ public class MainActivity : ActionBarActivity() {
                             space.updateDist(it.uuid, it.getDistance())
                         }
                         val pos = positionResolver calculatePositionIn space
-                        val room = floorPlan roomAt coord(0.5, 0.5)
+                        val room = floorPlan roomAt pos
                         Timber.e("!!!!!!! ${pos.x} ${pos.y} $room")
-                        getActivity() runOnUiThread { textView!! setText "${pos.x}\n${pos.y}\n${space.toString()}" }
+                        getActivity() runOnUiThread { textView!! setText "${pos.x}\n${pos.y}\n${space.toString()}\n${room.name}" }
                     }
                 }
 

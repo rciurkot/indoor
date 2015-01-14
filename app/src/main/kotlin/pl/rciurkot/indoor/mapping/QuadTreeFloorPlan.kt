@@ -13,23 +13,31 @@ import pl.rciurkot.kotlin.util.min
  * Created by rafalciurkot on 14.01.15.
  */
 public class QuadTreeFloorPlan private (upperLeft: Coord, bottomRight: Coord) : FloorPlan {
+    override val outside = Outside()
     val tree = RoomQuadTree(upperLeft, bottomRight)
 
     private class object {
         val QUERY_DIAMETER: Float = 0.5f
+        val RECURSION_RATIO: Float = 0.55f
     }
 
     override fun roomAt(coord: Coord): BuildingComponent {
-        val x = (coord.x - QUERY_DIAMETER / 2).toFloat()
-        val y = (coord.y - QUERY_DIAMETER / 2).toFloat()
+        return roomAt(coord, QUERY_DIAMETER)
+    }
 
-        val entries = tree.queryRange(x, y, QUERY_DIAMETER, QUERY_DIAMETER)
+    private fun roomAt(coord: Coord, diameter: Float): BuildingComponent {
+        val x = (coord.x - diameter / 2).toFloat()
+        val y = (coord.y - diameter / 2).toFloat()
+
+        val entries = tree.queryRange(x, y, diameter, diameter)
+
         if (entries.size() < 1) {
-            throw RuntimeException("no rooms found at $coord")
+            return outside
         } else if (entries.size() > 1) {
-            //TODO: pick best room
+            return roomAt(coord, diameter * RECURSION_RATIO)
+        } else {
+            return entries[0].buildingComponent
         }
-        return entries[0].buildingComponent
     }
 
     public class Builder : FloorPlan.Builder {
@@ -37,10 +45,11 @@ public class QuadTreeFloorPlan private (upperLeft: Coord, bottomRight: Coord) : 
         var upperLeftMostCorner = coord(java.lang.Double.MAX_VALUE, java.lang.Double.MAX_VALUE)
         var bottomRightMostCorner = coord(-java.lang.Double.MAX_VALUE, -java.lang.Double.MAX_VALUE)
 
-        override fun internalAdd(upperLeft: Coord, bottomRight: Coord, room: BuildingComponent) {
+        override fun add(upperLeft: Coord, bottomRight: Coord, room: BuildingComponent): Builder {
             rooms add RoomAABB(upperLeft, bottomRight, room)
             upperLeftMostCorner = coord(min(upperLeftMostCorner.x, upperLeft.x), min(upperLeftMostCorner.y, upperLeft.y))
-            bottomRightMostCorner = coord(max(bottomRightMostCorner.x, upperLeft.x), max(bottomRightMostCorner.y, upperLeft.y))
+            bottomRightMostCorner = coord(max(bottomRightMostCorner.x, bottomRight.x), max(bottomRightMostCorner.y, bottomRight.y))
+            return this
         }
 
         override fun build(): FloorPlan {
