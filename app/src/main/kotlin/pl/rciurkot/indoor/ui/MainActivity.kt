@@ -36,6 +36,10 @@ import pl.rciurkot.indoor.location.Coord
 import pl.rciurkot.indoor.beacon.ESTIMOTE_UUID
 import pl.rciurkot.indoor.positioning.HeremanTrilateration
 import pl.rciurkot.kotlin.util.notempty
+import pl.rciurkot.indoor.mapping.FloorPlan
+import pl.rciurkot.indoor.mapping.QuadTreeFloorPlan
+import pl.rciurkot.indoor.location.coord
+import pl.rciurkot.indoor.mapping.ClassRoom
 
 public class MainActivity : ActionBarActivity() {
 
@@ -105,7 +109,8 @@ public class MainActivity : ActionBarActivity() {
         private val beaconManager = BeaconManager.getInstanceForApplication(IndoorApp.self);
         private var textView: TextView? = null
         private val beaconsMap = HashMap<Int, Beacon>()
-        private val space: Space = buildSpace()
+        private val space = buildSpace()
+        private val floorPlan = buildFloorPlan()
 
         override fun onCreate(savedInstanceState: Bundle?) {
             super<Fragment>.onCreate(savedInstanceState)
@@ -116,6 +121,7 @@ public class MainActivity : ActionBarActivity() {
 
         override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
             val rootView = inflater!!.inflate(R.layout.fragment_main, container, false)
+
             textView = rootView.findViewById(R.id.textView) as TextView?
             return rootView
         }
@@ -157,8 +163,9 @@ public class MainActivity : ActionBarActivity() {
                             space.updateDist(it.uuid, it.getDistance())
                         }
                         val pos = positionResolver calculatePositionIn space
-                        Timber.e("!!!!!!! ${pos.x} ${pos.y}")
-                        getActivity() runOnUiThread { textView!! setText "${pos.x}\n${pos.y}\n${space.toString()}" }
+                        val room = floorPlan roomAt pos
+                        Timber.e("!!!!!!! ${pos.x} ${pos.y} $room")
+                        getActivity() runOnUiThread { textView!! setText "${pos.x}\n${pos.y}\n${space.toString()}\n${room.name}" }
                     }
                 }
 
@@ -185,5 +192,10 @@ public class MainActivity : ActionBarActivity() {
 
             return space
         }
+
+        fun buildFloorPlan() = QuadTreeFloorPlan.Builder()
+                .add(coord(0, 0), coord(1, 1), ClassRoom("1"))
+                .add(coord(1, 1), coord(2, 2), ClassRoom("2"))
+                .build()
     }
 }
