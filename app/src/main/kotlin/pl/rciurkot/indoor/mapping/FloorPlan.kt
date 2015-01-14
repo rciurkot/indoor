@@ -9,14 +9,14 @@ public trait FloorPlan {
     public fun roomAt(coord: Coord): BuildingComponent
 
     public trait Builder {
-        public final fun plus(upperLeft: Coord, bottomRight: Coord, room: BuildingComponent): Builder {
+        public final fun add(upperLeft: Coord, bottomRight: Coord, room: BuildingComponent): Builder {
             internalAdd(upperLeft, bottomRight, room)
             return this
         }
 
         protected fun internalAdd(upperLeft: Coord, bottomRight: Coord, room: BuildingComponent)
 
-        protected fun build(): FloorPlan
+        public fun build(): FloorPlan
     }
 }
 
