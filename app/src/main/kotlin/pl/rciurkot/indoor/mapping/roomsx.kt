@@ -8,6 +8,6 @@ public trait BuildingComponent
 //TODO: rozważyć czy taki trait ma sens
 public trait Outside : BuildingComponent
 
-public trait ClassRoom : BuildingComponent
+public class ClassRoom(var name: String) : BuildingComponent
 
 public trait Corridor : BuildingComponent
