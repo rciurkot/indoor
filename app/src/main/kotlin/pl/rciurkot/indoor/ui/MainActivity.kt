@@ -117,6 +117,13 @@ public class MainActivity : ActionBarActivity() {
             beaconManager.getBeaconParsers().add(EstimoteBeaconParser())
             BeaconManager.setDebug(false)
             beaconManager bind this
+
+            val coord = coord(1.1, 0.8)
+            val nn = floorPlan.neighbours(coord, 0.1)
+            val min = nn.minBy { floorPlan.dist(coord, it) }
+
+            Timber.e("nn $nn\nmin $min")
+
         }
 
         override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -165,7 +172,7 @@ public class MainActivity : ActionBarActivity() {
                         val pos = positionResolver calculatePositionIn space
                         val room = floorPlan roomAt pos
                         Timber.e("!!!!!!! ${pos.x} ${pos.y} $room")
-                        getActivity() runOnUiThread { textView!! setText "${pos.x}\n${pos.y}\n${space.toString()}\n${room.name}" }
+                        getActivity() runOnUiThread { textView!! setText "${pos.x}\n${pos.y}\n${space.toString()}\n${room.buildingComponent.name}" }
                     }
                 }
 
